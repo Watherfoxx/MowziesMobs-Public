@@ -1,5 +1,6 @@
 package com.bobmowzie.mowziesmobs.server.item;
 
+import com.bobmowzie.mowziesmobs.MowziesMobs;
 import com.bobmowzie.mowziesmobs.server.ability.AbilityHandler;
 import com.bobmowzie.mowziesmobs.server.capability.AbilityCapability;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
@@ -35,17 +36,22 @@ public class ItemIceCrystal extends Item {
         ItemStack stack = playerIn.getItemInHand(handIn);
         AbilityCapability.IAbilityCapability abilityCapability = AbilityHandler.INSTANCE.getAbilityCapability(playerIn);
         if (abilityCapability != null) {
-            playerIn.startUsingItem(handIn);
-            if (stack.getDamageValue() + 5 < stack.getMaxDamage() || ConfigHandler.COMMON.TOOLS_AND_ABILITIES.ICE_CRYSTAL.breakable.get()) {
+            if (hasUsableDurability(stack)) {
                 if (!worldIn.isClientSide()) AbilityHandler.INSTANCE.sendAbilityMessage(playerIn, AbilityHandler.ICE_BREATH_ABILITY);
                 stack.hurtAndBreak(5, playerIn, p -> p.broadcastBreakEvent(handIn));
                 playerIn.startUsingItem(handIn);
                 return new InteractionResultHolder<ItemStack>(InteractionResult.SUCCESS, playerIn.getItemInHand(handIn));
             } else {
                 abilityCapability.getAbilityMap().get(AbilityHandler.ICE_BREATH_ABILITY).end();
+                playerIn.stopUsingItem();
             }
         }
         return super.use(worldIn, playerIn, handIn);
+    }
+
+    private boolean hasUsableDurability(ItemStack stack) {
+        return !stack.isEmpty() && (stack.getDamageValue() + 5 < stack.getMaxDamage()
+                || ConfigHandler.COMMON.TOOLS_AND_ABILITIES.ICE_CRYSTAL.breakable.get());
     }
 
     @Override
@@ -61,6 +67,20 @@ public class ItemIceCrystal extends Item {
 
     public int getUseDuration(ItemStack stack) {
         return 72000;
+    }
+
+    @Override
+    public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remainingUseDuration) {
+        super.onUseTick(level, entity, stack, remainingUseDuration);
+        if (!hasUsableDurability(stack)) {
+            entity.stopUsingItem();
+            return;
+        }
+        if (level.isClientSide) {
+            double particleY = entity.getY() + entity.getEyeHeight() - 0.5f;
+            int particleTick = getUseDuration(stack) - remainingUseDuration;
+            MowziesMobs.PROXY.spawnIceBreathParticles(level, entity.getX(), particleY, entity.getZ(), entity.getYRot(), entity.getXRot(), entity.getRandom(), particleTick);
+        }
     }
 
     @Override

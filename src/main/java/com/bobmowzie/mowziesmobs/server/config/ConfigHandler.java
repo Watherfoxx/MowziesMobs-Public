@@ -356,6 +356,9 @@ public final class ConfigHandler {
                     Collections.emptyList()
             );
             combatConfig = new CombatConfig(builder, 1, 1);
+            this.aggroRange = builder.comment("Maximum distance in blocks at which the Ferrous Wroughtnaut can acquire a player target. Set to 0 to disable proximity aggro.")
+                    .translation(LANG_PREFIX + "aggro_range")
+                    .defineInRange("aggro_range", 16, 0, 2048);
             this.hasBossBar = builder.comment("Disable/enable Ferrous Wroughtnaut's boss health bar")
                     .translation(LANG_PREFIX + "has_boss_bar")
                     .define("has_boss_bar", true);
@@ -371,6 +374,9 @@ public final class ConfigHandler {
         public final GenerationConfig generationConfig;
 
         public final CombatConfig combatConfig;
+
+        public final IntValue aggroRange;
+
         public final BooleanValue hasBossBar;
 
         public final BooleanValue healsOutOfBattle;

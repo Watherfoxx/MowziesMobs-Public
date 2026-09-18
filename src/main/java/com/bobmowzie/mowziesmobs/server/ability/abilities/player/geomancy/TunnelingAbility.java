@@ -11,6 +11,7 @@ import com.bobmowzie.mowziesmobs.client.sound.IGeomancyRumbler;
 import com.bobmowzie.mowziesmobs.server.ability.*;
 import com.bobmowzie.mowziesmobs.server.capability.AbilityCapability;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.EntityHandler;
 import com.bobmowzie.mowziesmobs.server.entity.effects.EntityBlockSwapper;
 import com.bobmowzie.mowziesmobs.server.entity.effects.EntityFallingBlock;
@@ -168,6 +169,7 @@ public class TunnelingAbility extends PlayerAbility implements IGeomancyRumbler 
 
             List<LivingEntity> entitiesHit = getEntityLivingBaseNearby(getUser(),2, 2, 2, 2);
             for (LivingEntity entityHit : entitiesHit) {
+                if (entityHit == getUser() || !DamageUtil.canAttack(getUser(), entityHit)) continue;
                 DamageSource damageSource = getUser().damageSources().playerAttack(getUser());
                 entityHit.hurt(damageSource, 3 * ConfigHandler.COMMON.TOOLS_AND_ABILITIES.EARTHREND_GAUNTLET.attackMultiplier.get().floatValue());
             }

@@ -73,7 +73,7 @@ public class EntitySuperNova extends EntityMagicEffect {
                 if (entity instanceof ItemEntity) continue;
                 if (getCaster() instanceof EntityUmvuthi && entity instanceof LeaderSunstrikeImmune) continue;
                 if (entity instanceof LivingEntity livingEntity) {
-                    if (getCaster().canAttack(livingEntity)) {
+                    if (getCaster().canAttack(livingEntity) && DamageUtil.canAttack(getCaster(), livingEntity)) {
                         float damageFire = 4f;
                         float damageMob = 4f;
                         if (getCaster() instanceof EntityUmvuthi) {
@@ -94,6 +94,7 @@ public class EntitySuperNova extends EntityMagicEffect {
                     }
                 }
                 else {
+                    if (!DamageUtil.canAttack(getCaster(), entity)) continue;
                     entity.hurt(damageSources().mobProjectile(this, getCaster()), 4);
                 }
             }

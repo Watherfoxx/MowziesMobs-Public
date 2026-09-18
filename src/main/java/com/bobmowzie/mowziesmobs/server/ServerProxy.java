@@ -16,10 +16,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -47,6 +49,9 @@ public class ServerProxy {
     }
 
     public void playIceBreathSound(Entity entity) {
+    }
+
+    public void spawnIceBreathParticles(Level level, double x, double y, double z, float yRot, float xRot, RandomSource random, int particleTick) {
     }
 
     public void playBoulderChargeSound(LivingEntity player) {

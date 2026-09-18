@@ -4,6 +4,7 @@ import com.bobmowzie.mowziesmobs.client.particle.ParticleHandler;
 import com.bobmowzie.mowziesmobs.client.particle.util.AdvancedParticleBase;
 import com.bobmowzie.mowziesmobs.client.particle.util.ParticleComponent;
 import com.bobmowzie.mowziesmobs.server.ability.*;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.effects.EntityCameraShake;
 import com.bobmowzie.mowziesmobs.server.potion.EffectGeomancy;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -45,6 +46,7 @@ public class GroundSlamAbility extends PlayerAbility {
             if(getUser().onGround()){
                 nextSection();
                 for(LivingEntity livingentity : getUser().level().getEntitiesOfClass(LivingEntity.class, getUser().getBoundingBox().inflate(5.2D, 2.0D, 5.2D))) {
+                    if (livingentity == getUser() || !DamageUtil.canAttack(getUser(), livingentity)) continue;
                     livingentity.hurt(getUser().damageSources().mobAttack(getUser()),10f);
                 }
 

@@ -4,6 +4,7 @@ import com.bobmowzie.mowziesmobs.MowziesMobs;
 import com.bobmowzie.mowziesmobs.client.model.tools.MathUtils;
 import com.bobmowzie.mowziesmobs.client.particle.ParticleOrb;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.LeaderSunstrikeImmune;
 import com.bobmowzie.mowziesmobs.server.entity.umvuthana.EntityUmvuthi;
 import net.minecraft.core.Direction;
@@ -204,6 +205,7 @@ public class EntitySunstrike extends Entity implements IEntityAdditionalSpawnDat
                 if (caster instanceof Player && entity == caster) {
                     continue;
                 }
+                if (!DamageUtil.canAttack(caster, entity)) continue;
                 float damageFire = 2f;
                 float damageMob = 2f;
                 if (caster instanceof EntityUmvuthi) {
@@ -211,8 +213,8 @@ public class EntitySunstrike extends Entity implements IEntityAdditionalSpawnDat
                     damageMob *= ConfigHandler.COMMON.MOBS.UMVUTHI.combatConfig.attackMultiplier.get();
                 }
                 if (caster instanceof Player) {
-                    damageFire *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get();
-                    damageMob *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get();
+                    damageFire *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get() * 0.5;
+                    damageMob *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get() * 3;
                 }
                 if (entity.hurt(damageSources().mobProjectile(this, caster), damageMob)) entity.invulnerableTime = 0;
                 if (entity.hurt(damageSources().onFire(), damageFire)) {

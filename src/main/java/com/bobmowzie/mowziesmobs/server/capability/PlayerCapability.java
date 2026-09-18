@@ -513,6 +513,7 @@ public class PlayerCapability {
                             stack.hurtAndBreak(5, player, p -> p.broadcastBreakEvent(handIn));
                         }
                         iceBreathAbility.end();
+                        player.stopUsingItem();
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package com.bobmowzie.mowziesmobs.server.ability;
 
 import com.bobmowzie.mowziesmobs.server.capability.AbilityCapability;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -91,6 +92,8 @@ public class AbilityCommonEventHandler {
 
     @SubscribeEvent
     public void onLeftClickEntity(AttackEntityEvent event) {
+        if (DamageUtil.isCheckingAttackPermission()) return;
+
         Player player = event.getEntity();
         AbilityCapability.IAbilityCapability abilityCapability = AbilityHandler.INSTANCE.getAbilityCapability(player);
         if (abilityCapability != null) {

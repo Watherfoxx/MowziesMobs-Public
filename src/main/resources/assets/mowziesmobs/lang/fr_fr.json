@@ -161,6 +161,7 @@
   "config.mowziesmobs.foliaath.tooltip": "",
   "config.mowziesmobs.ferrous_wroughtnaut": "Ferrous Wroughtnaut",
   "config.mowziesmobs.has_boss_bar": "Afficher la Boss Bar",
+  "config.mowziesmobs.aggro_range": "Distance d'agression",
   "config.mowziesmobs.heals_out_of_battle": "Se régénère lorsque désengagé de combat",
   "config.mowziesmobs.old_barakoa_textures": "Utiliser les anciennes textures de Barakoa",
   "config.mowziesmobs.do_camera_shake": "Tremblements de caméra",

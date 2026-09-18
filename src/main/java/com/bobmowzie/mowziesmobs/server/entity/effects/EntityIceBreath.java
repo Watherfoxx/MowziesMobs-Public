@@ -1,19 +1,14 @@
 package com.bobmowzie.mowziesmobs.server.entity.effects;
 
 import com.bobmowzie.mowziesmobs.MowziesMobs;
-import com.bobmowzie.mowziesmobs.client.particle.ParticleCloud;
-import com.bobmowzie.mowziesmobs.client.particle.ParticleHandler;
-import com.bobmowzie.mowziesmobs.client.particle.ParticleRing;
-import com.bobmowzie.mowziesmobs.client.particle.ParticleSnowFlake;
 import com.bobmowzie.mowziesmobs.server.ability.AbilityHandler;
 import com.bobmowzie.mowziesmobs.server.capability.AbilityCapability;
 import com.bobmowzie.mowziesmobs.server.capability.CapabilityHandler;
 import com.bobmowzie.mowziesmobs.server.capability.FrozenCapability;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.frostmaw.EntityFrostmaw;
 import com.bobmowzie.mowziesmobs.server.sound.MMSounds;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.Entity;
@@ -52,48 +47,24 @@ public class EntityIceBreath extends EntityMagicEffect {
                 MowziesMobs.PROXY.playIceBreathSound(this);
             }
         }
-        if (tickCount > 1 && getCaster() == null) this.discard() ;
-        if (getCaster() != null && !getCaster().isAlive()) this.discard() ;
+        if (!level().isClientSide && tickCount > 1 && getCaster() == null) this.discard();
+        if (!level().isClientSide && getCaster() != null && !getCaster().isAlive()) this.discard();
         if (tickCount == 1) playSound(MMSounds.ENTITY_FROSTMAW_ICEBREATH_START.get(), 1, 0.6f);
         if (getCaster() instanceof Player) {
             Player player = (Player) getCaster();
             absMoveTo(player.getX(), player.getY() + player.getStandingEyeHeight(player.getPose(), player.getDimensions(player.getPose())) - 0.5f, player.getZ(), player.getYRot(), player.getXRot());
-            AbilityCapability.IAbilityCapability abilityCapability = AbilityHandler.INSTANCE.getAbilityCapability(player);
-            if (abilityCapability != null && !abilityCapability.getAbilityFromType(AbilityHandler.ICE_BREATH_ABILITY).isUsing()) {
-                this.discard();
+            if (!level().isClientSide) {
+                AbilityCapability.IAbilityCapability abilityCapability = AbilityHandler.INSTANCE.getAbilityCapability(player);
+                if (abilityCapability != null && !abilityCapability.getAbilityFromType(AbilityHandler.ICE_BREATH_ABILITY).isUsing()) {
+                    this.discard();
+                }
             }
         }
 
-        float yaw = (float) Math.toRadians(-getYRot());
-        float pitch = (float) Math.toRadians(-getXRot());
-        float spread = 0.25f;
-        float speed = 0.56f;
-        float xComp = (float) (Math.sin(yaw) * Math.cos(pitch));
-        float yComp = (float) (Math.sin(pitch));
-        float zComp = (float) (Math.cos(yaw) * Math.cos(pitch));
-        if (level().isClientSide) {
-            Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-            boolean overrideLimiter = camera.getPosition().distanceToSqr(getX(), getY(), getZ()) < 64 * 64;
-            if (tickCount % 8 == 0) {
-                level().addAlwaysVisibleParticle(new ParticleRing.RingData(yaw, -pitch, 40, 1f, 1f, 1f, 1f, 110f * spread, false, ParticleRing.EnumRingBehavior.GROW), overrideLimiter, getX(), getY(), getZ(), 0.5f * xComp, 0.5f * yComp, 0.5f * zComp);
-            }
-
-            for (int i = 0; i < 6; i++) {
-                double xSpeed = speed * 1f * xComp;// + (spread * (rand.nextFloat() * 2 - 1) * (1 - Math.abs(xComp)));
-                double ySpeed = speed * 1f * yComp;// + (spread * (rand.nextFloat() * 2 - 1) * (1 - Math.abs(yComp)));
-                double zSpeed = speed * 1f * zComp;// + (spread * (rand.nextFloat() * 2 - 1) * (1 - Math.abs(zComp)));
-                level().addParticle(new ParticleSnowFlake.SnowflakeData(37f, true), getX(), getY(), getZ(), xSpeed, ySpeed, zSpeed);
-            }
-            for (int i = 0; i < 5; i++) {
-                double xSpeed = speed * xComp + (spread * 0.7 * (random.nextFloat() * 2 - 1) * (Math.sqrt(1 - xComp * xComp)));
-                double ySpeed = speed * yComp + (spread * 0.7 * (random.nextFloat() * 2 - 1) * (Math.sqrt(1 - yComp * yComp)));
-                double zSpeed = speed * zComp + (spread * 0.7 * (random.nextFloat() * 2 - 1) * (Math.sqrt(1 - zComp * zComp)));
-                float value = random.nextFloat() * 0.15f;
-                level().addAlwaysVisibleParticle(new ParticleCloud.CloudData(ParticleHandler.CLOUD.get(), 0.75f + value, 0.75f + value,1f, 10f + random.nextFloat() * 20f, 40, ParticleCloud.EnumCloudBehavior.GROW, 1f), overrideLimiter, getX(), getY(), getZ(), xSpeed, ySpeed, zSpeed);
-            }
+        if (level().isClientSide && getCaster() != null && !(getCaster() instanceof Player)) {
+            MowziesMobs.PROXY.spawnIceBreathParticles(level(), getX(), getY(), getZ(), getYRot(), getXRot(), random, tickCount);
         }
         if (tickCount > 10) hitEntities();
-        if (tickCount > 10) freezeBlocks();
 
         if (tickCount > 65 && !(getCaster() instanceof Player)) discard() ;
     }
@@ -140,6 +111,7 @@ public class EntityIceBreath extends EntityMagicEffect {
             if (inRange && yawCheck && pitchCheck || frostmawCloseCheck) {
                 // Do raycast check to prevent damaging through walls
                 if (!raytraceCheckEntity(entityHit)) continue;
+                if (!DamageUtil.canAttack(getCaster(), entityHit)) continue;
 
                 if (entityHit.hurt(damageSources().freeze(), damage) && entityHit instanceof LivingEntity) {
                     entityHit.setDeltaMovement(entityHit.getDeltaMovement().multiply(0.25, 1, 0.25));

@@ -5,6 +5,7 @@ import com.bobmowzie.mowziesmobs.client.particle.AdvancedTerrainParticle;
 import com.bobmowzie.mowziesmobs.client.particle.ParticleHandler;
 import com.bobmowzie.mowziesmobs.client.particle.util.ParticleComponent;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.bluff.EntityBluff;
 import com.bobmowzie.mowziesmobs.server.entity.effects.EntityMagicEffect;
 import com.bobmowzie.mowziesmobs.server.sound.MMSounds;
@@ -80,6 +81,7 @@ public class EntityEarthSpike extends EntityGeomancyBase {
             for (Entity entity : entitiesHit) {
                 if (getCaster() instanceof EntityBluff && entity instanceof EntityBluff) continue;
                 if (entity instanceof ItemEntity) continue;
+                if (!DamageUtil.canAttack(getCaster(), entity)) continue;
                 entity.hurt(damageSources().mobProjectile(this, getCaster()), (float) damage);
                 float applyKnockbackResistance = 0;
                 if (entity instanceof LivingEntity) {

@@ -6,6 +6,7 @@ import com.bobmowzie.mowziesmobs.client.particle.util.ParticleComponent;
 import com.bobmowzie.mowziesmobs.client.particle.util.ParticleRotation;
 import com.bobmowzie.mowziesmobs.server.ability.AbilityHandler;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.effects.EntityCameraShake;
 import com.bobmowzie.mowziesmobs.server.entity.sculptor.EntitySculptor;
 import com.bobmowzie.mowziesmobs.server.potion.EffectGeomancy;
@@ -146,6 +147,7 @@ public class EntityBoulderProjectile extends EntityBoulderBase {
                 if (!travellingBlockedBy(entity)) continue;
                 if (ridingEntities != null && ridingEntities.contains(entity)) continue;
                 if (hitEntities.contains(entity)) continue;
+                if (!DamageUtil.canAttack(getCaster(), entity)) continue;
                 boolean didHurt;
                 if (getCaster() != null) {
                     didHurt = entity.hurt(damageSources().mobProjectile(this, getCaster()), damage);

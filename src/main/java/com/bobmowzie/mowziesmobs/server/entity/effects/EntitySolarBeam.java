@@ -203,6 +203,7 @@ public class EntitySolarBeam extends Entity {
                         continue;
                     }
                     if (target instanceof ItemEntity) continue;
+                    if (!DamageUtil.canAttack(caster, target)) continue;
                     float damageFire = 1f;
                     float damageMob = 1.5f;
                     if (caster instanceof EntityUmvuthi) {
@@ -210,8 +211,8 @@ public class EntitySolarBeam extends Entity {
                         damageMob *= ConfigHandler.COMMON.MOBS.UMVUTHI.combatConfig.attackMultiplier.get();
                     }
                     if (caster instanceof Player) {
-                        damageFire *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get() * 0.75;
-                        damageMob *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get() * 0.75;
+                        damageFire *= ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get() * 0.5;
+                        damageMob = (float) (ConfigHandler.COMMON.TOOLS_AND_ABILITIES.SUNS_BLESSING.sunsBlessingAttackMultiplier.get() * 4);
                     }
                     if (target instanceof LivingEntity) {
                         DamageUtil.dealMixedDamage((LivingEntity) target, damageSources().mobProjectile(this, caster), damageMob, damageSources().onFire(), damageFire);

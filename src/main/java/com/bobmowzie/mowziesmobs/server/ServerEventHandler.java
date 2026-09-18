@@ -12,6 +12,7 @@ import com.bobmowzie.mowziesmobs.server.ai.AvoidEntityIfNotTamedGoal;
 import com.bobmowzie.mowziesmobs.server.block.BlockHandler;
 import com.bobmowzie.mowziesmobs.server.capability.*;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.EntityHandler;
 import com.bobmowzie.mowziesmobs.server.entity.LeaderSunstrikeImmune;
 import com.bobmowzie.mowziesmobs.server.entity.MowzieEntity;
@@ -82,6 +83,7 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.furnace.FurnaceFuelBurnTimeEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.PacketDistributor;
@@ -92,6 +94,15 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class ServerEventHandler {
+    private static void playFrozenItemUseSound(Player player, ItemStack itemStack) {
+        if (!itemStack.isEmpty()) {
+            player.playSound(MMSounds.ENTITY_FROSTMAW_FROZEN_CRASH.get(), 1.0F, 1.0F);
+        }
+    }
+
+    private static boolean isFrozenPlayer(LivingEntity entity) {
+        return entity instanceof Player && entity.hasEffect(EffectHandler.FROZEN.get());
+    }
 
     @SubscribeEvent
     public void onJoinWorld(EntityJoinLevelEvent event) {
@@ -296,6 +307,33 @@ public final class ServerEventHandler {
             FrozenCapability.IFrozenCapability frozenCapability = CapabilityHandler.getCapability(event.getEntity(), CapabilityHandler.FROZEN_CAPABILITY);
             if (frozenCapability != null) {
                 frozenCapability.onUnfreeze(event.getEntity());
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onFrozenPlayerAttacked(LivingAttackEvent event) {
+        if (event.isCancelable() && isFrozenPlayer(event.getEntity())) {
+            if (event.getSource().getEntity() instanceof Player) {
+                event.getEntity().playSound(MMSounds.ENTITY_FROSTMAW_FROZEN_CRASH.get(), 1.0F, 1.0F);
+            }
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onFrozenPlayerHurt(LivingHurtEvent event) {
+        if (event.isCancelable() && isFrozenPlayer(event.getEntity())) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onFrozenPlayerDamaged(LivingDamageEvent event) {
+        if (isFrozenPlayer(event.getEntity())) {
+            event.setAmount(0.0F);
+            if (event.isCancelable()) {
+                event.setCanceled(true);
             }
         }
     }
@@ -545,6 +583,7 @@ public final class ServerEventHandler {
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent.EntityInteract event) {
         if (event.isCancelable() && event.getEntity().hasEffect(EffectHandler.FROZEN.get())) {
+            playFrozenItemUseSound(event.getEntity(), event.getItemStack());
             event.setCanceled(true);
             return;
         }
@@ -567,6 +606,7 @@ public final class ServerEventHandler {
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent.RightClickBlock event) {
         if (event.isCancelable() && event.getEntity().hasEffect(EffectHandler.FROZEN.get())) {
+            playFrozenItemUseSound(event.getEntity(), event.getItemStack());
             event.setCanceled(true);
             return;
         }
@@ -657,6 +697,7 @@ public final class ServerEventHandler {
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent.RightClickItem event) {
         if (event.isCancelable() && event.getEntity().hasEffect(EffectHandler.FROZEN.get())) {
+            playFrozenItemUseSound(event.getEntity(), event.getItemStack());
             event.setCanceled(true);
             return;
         }
@@ -721,6 +762,8 @@ public final class ServerEventHandler {
 
     @SubscribeEvent
     public void onPlayerAttack(AttackEntityEvent event) {
+        if (DamageUtil.isCheckingAttackPermission()) return;
+
         if (event.isCancelable() && event.getEntity().hasEffect(EffectHandler.FROZEN.get())) {
             event.setCanceled(true);
             return;

@@ -11,9 +11,33 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.common.ForgeHooks;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class DamageUtil {
+    private static final ThreadLocal<Boolean> CHECKING_ATTACK_PERMISSION = ThreadLocal.withInitial(() -> false);
+
+    public static boolean isCheckingAttackPermission() {
+        return CHECKING_ATTACK_PERMISSION.get();
+    }
+
+    public static boolean canAttack(Entity attacker, Entity target) {
+        if (!(attacker instanceof Player player)) {
+            return true;
+        }
+
+        boolean wasCheckingAttackPermission = CHECKING_ATTACK_PERMISSION.get();
+        CHECKING_ATTACK_PERMISSION.set(true);
+        try {
+            if (!ForgeHooks.onPlayerAttackTarget(player, target)) {
+                return false;
+            }
+        } finally {
+            CHECKING_ATTACK_PERMISSION.set(wasCheckingAttackPermission);
+        }
+        return target.isAttackable() && !target.skipAttackInteraction(player);
+    }
+
     // TODO: Works for current use cases, but possibly not for future edge cases. Use reflection to get hurt sound for onHit2?
     public static Pair<Boolean, Boolean> dealMixedDamage(LivingEntity target, DamageSource source1, float amount1, DamageSource source2, float amount2) {
         if (target.level().isClientSide()) return Pair.of(false, false);

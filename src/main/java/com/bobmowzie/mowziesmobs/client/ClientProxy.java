@@ -1,5 +1,9 @@
 package com.bobmowzie.mowziesmobs.client;
 
+import com.bobmowzie.mowziesmobs.client.particle.ParticleCloud;
+import com.bobmowzie.mowziesmobs.client.particle.ParticleHandler;
+import com.bobmowzie.mowziesmobs.client.particle.ParticleRing;
+import com.bobmowzie.mowziesmobs.client.particle.ParticleSnowFlake;
 import com.bobmowzie.mowziesmobs.client.render.block.SculptorBlockMarking;
 import com.bobmowzie.mowziesmobs.client.render.entity.FrozenRenderHandler;
 import com.bobmowzie.mowziesmobs.client.sound.*;
@@ -13,17 +17,20 @@ import com.bobmowzie.mowziesmobs.server.item.ItemHandler;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.TerrainParticle;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -73,6 +80,34 @@ public class ClientProxy extends ServerProxy {
     @Override
     public void playIceBreathSound(Entity entity) {
         Minecraft.getInstance().getSoundManager().play(new IceBreathSound(entity));
+    }
+
+    @Override
+    public void spawnIceBreathParticles(Level level, double x, double y, double z, float yRot, float xRot, RandomSource random, int particleTick) {
+        float yaw = (float) Math.toRadians(-yRot);
+        float pitch = (float) Math.toRadians(-xRot);
+        float spread = 0.25f;
+        float speed = 0.56f;
+        float xComp = (float) (Math.sin(yaw) * Math.cos(pitch));
+        float yComp = (float) Math.sin(pitch);
+        float zComp = (float) (Math.cos(yaw) * Math.cos(pitch));
+        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        boolean overrideLimiter = camera.getPosition().distanceToSqr(x, y, z) < 64 * 64;
+
+        if (particleTick % 8 == 0) {
+            level.addAlwaysVisibleParticle(new ParticleRing.RingData(yaw, -pitch, 40, 1f, 1f, 1f, 1f, 110f * spread, false, ParticleRing.EnumRingBehavior.GROW), overrideLimiter, x, y, z, 0.5f * xComp, 0.5f * yComp, 0.5f * zComp);
+        }
+
+        for (int i = 0; i < 6; i++) {
+            level.addParticle(new ParticleSnowFlake.SnowflakeData(37f, true), x, y, z, speed * xComp, speed * yComp, speed * zComp);
+        }
+        for (int i = 0; i < 5; i++) {
+            double xSpeed = speed * xComp + spread * 0.7 * (random.nextFloat() * 2 - 1) * Math.sqrt(1 - xComp * xComp);
+            double ySpeed = speed * yComp + spread * 0.7 * (random.nextFloat() * 2 - 1) * Math.sqrt(1 - yComp * yComp);
+            double zSpeed = speed * zComp + spread * 0.7 * (random.nextFloat() * 2 - 1) * Math.sqrt(1 - zComp * zComp);
+            float value = random.nextFloat() * 0.15f;
+            level.addAlwaysVisibleParticle(new ParticleCloud.CloudData(ParticleHandler.CLOUD.get(), 0.75f + value, 0.75f + value, 1f, 10f + random.nextFloat() * 20f, 40, ParticleCloud.EnumCloudBehavior.GROW, 1f), overrideLimiter, x, y, z, xSpeed, ySpeed, zSpeed);
+        }
     }
 
     @Override

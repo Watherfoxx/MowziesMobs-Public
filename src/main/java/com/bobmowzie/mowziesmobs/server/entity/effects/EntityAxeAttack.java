@@ -3,6 +3,7 @@ package com.bobmowzie.mowziesmobs.server.entity.effects;
 import com.bobmowzie.mowziesmobs.server.capability.CapabilityHandler;
 import com.bobmowzie.mowziesmobs.server.capability.PlayerCapability;
 import com.bobmowzie.mowziesmobs.server.config.ConfigHandler;
+import com.bobmowzie.mowziesmobs.server.damage.DamageUtil;
 import com.bobmowzie.mowziesmobs.server.entity.EntityHandler;
 import com.bobmowzie.mowziesmobs.server.item.ItemHandler;
 import com.bobmowzie.mowziesmobs.server.sound.MMSounds;
@@ -115,8 +116,10 @@ public class EntityAxeAttack extends EntityMagicEffect {
                             boolean hitEntity = false;
                             if (!raytraceCheckEntity(entity)) continue;
 
-                            if (getCaster() instanceof Player)
+                            if (getCaster() instanceof Player) {
+                                if (!DamageUtil.canAttack(getCaster(), entity)) continue;
                                 hitEntity = entity.hurt(damageSources().playerAttack((Player) getCaster()), (factor * 5 + 1) * (ConfigHandler.COMMON.TOOLS_AND_ABILITIES.AXE_OF_A_THOUSAND_METALS.toolConfig.attackDamage.get().floatValue() / 9.0f));
+                            }
                             else
                                 hitEntity = entity.hurt(damageSources().mobAttack(getCaster()), (factor * 5 + 1) * (ConfigHandler.COMMON.TOOLS_AND_ABILITIES.AXE_OF_A_THOUSAND_METALS.toolConfig.attackDamage.get().floatValue() / 9.0f));
                             if (entity instanceof LivingEntity) {
@@ -219,7 +222,7 @@ public class EntityAxeAttack extends EntityMagicEffect {
      * Copied from player entity, with modification
      */
     public void attackTargetEntityWithCurrentItem(Entity targetEntity, Player player, float damageMult, float knockbackMult) {
-        if (!net.minecraftforge.common.ForgeHooks.onPlayerAttackTarget(player, targetEntity)) return;
+        if (!DamageUtil.canAttack(player, targetEntity)) return;
 
         ItemStack oldStack = player.getMainHandItem();
         ItemStack newStack = getAxeStack();

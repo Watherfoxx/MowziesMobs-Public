@@ -32,6 +32,7 @@ import net.minecraft.world.BossEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;
@@ -115,6 +116,7 @@ public class EntityWroughtnaut extends MowzieLLibraryEntity implements Enemy {
         xpReward = 30;
         active = false;
         setMaxUpStep(1);
+        applyAggroRangeConfig();
 //        rightEyePos = new Vector3d(0, 0, 0);
 //        leftEyePos = new Vector3d(0, 0, 0);
 //        rightEyeRot = new Vector3d(0, 0, 0);
@@ -171,7 +173,15 @@ public class EntityWroughtnaut extends MowzieLLibraryEntity implements Enemy {
     public static AttributeSupplier.Builder createAttributes() {
         return MowzieEntity.createAttributes().add(Attributes.ATTACK_DAMAGE, 30)
                 .add(Attributes.MAX_HEALTH, 40)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 1);
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1)
+                .add(Attributes.FOLLOW_RANGE, 16);
+    }
+
+    private void applyAggroRangeConfig() {
+        AttributeInstance followRange = getAttribute(Attributes.FOLLOW_RANGE);
+        if (followRange != null) {
+            followRange.setBaseValue(ConfigHandler.COMMON.MOBS.FERROUS_WROUGHTNAUT.aggroRange.get());
+        }
     }
 
     @Override
@@ -598,6 +608,7 @@ public class EntityWroughtnaut extends MowzieLLibraryEntity implements Enemy {
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
+        applyAggroRangeConfig();
         if (compound.contains("restPos")) {
             setRestPos(NbtUtils.readBlockPos(compound.getCompound("restPos")));
         }
